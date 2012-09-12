@@ -3,11 +3,11 @@
     <string name="app_name">netMon</string>
     <string name="hello_world">Hello world!</string>
     <string name="menu_settings">Settings</string>
-    <string name="title_activity_main">Menu Principal</string>
+    <string name="title_activity_main">Network Monitor</string>
     <string name="edit_message">Ingrese una URL</string>
     <string name="button_send">Ejecutar</string>
     <string name="title_activity_display_message">Muestra URL</string>
     <string name="title_activity_connect_to_url">Ver contenido</string>
-    <string name="cargar_url">Cargar URL</string>
+    <string name="cargar_url">Analizar Red de Datos</string>
    
 </resources>

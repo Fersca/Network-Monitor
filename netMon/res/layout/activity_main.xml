@@ -6,23 +6,24 @@
     android:orientation="vertical" >
 
     <EditText
-        android:id="@+id/edit_message"
+        android:id="@+id/currentStatus"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:ems="10"
-        android:hint="Ingrese URL"
-    />
+        android:text="Detenido" />
 
     <Button
+        android:id="@+id/boton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:onClick="connectToURL"
         android:text="@string/cargar_url" />
 
-    <Button
-        android:layout_width="wrap_content"
+    <EditText
+        android:id="@+id/progress"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:onClick="sendMessage"
-        android:text="@string/button_send" />
+        android:ems="10"
+        android:text="Detenido" />
     
 </LinearLayout>

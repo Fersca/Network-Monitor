@@ -14,7 +14,6 @@ import android.content.Intent;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
-import android.view.View;
 import android.widget.TextView;
 
 public class ConnectToURLActivity extends Activity {
@@ -74,7 +73,7 @@ public class ConnectToURLActivity extends Activity {
             InputStream is = null;
             // Only display the first 1000 characters of the retrieved
             // web page content.
-            int len = 1000;
+            int len = 250;
                 
             try {
                 URL url = new URL(myurl);
