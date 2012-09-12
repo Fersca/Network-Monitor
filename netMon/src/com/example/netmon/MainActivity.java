@@ -179,7 +179,7 @@ public class MainActivity extends Activity {
     private class Hilo extends Thread {
     	public boolean fin = false;
     	public void run(){
-    		String result = buscarPagina("http://www.google.com");
+    		String result = networkMonitor();
     		contador++;   
     		if (contador>6){
     			currentStatus.setText(result);
@@ -194,73 +194,77 @@ public class MainActivity extends Activity {
     	}
     }
    
+    public String networkMonitor(){
     
-// When user clicks button, calls AsyncTask.
-// Before attempting to fetch the URL, makes sure that there is a network connection.
-public String buscarPagina(String message) {
-    // Gets the URL from the UI's text field.
-    String stringUrl = message;
-    ConnectivityManager connMgr = (ConnectivityManager)getSystemService(Context.CONNECTIVITY_SERVICE);
-    NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
+	    ConnectivityManager connMgr = (ConnectivityManager)getSystemService(Context.CONNECTIVITY_SERVICE);
+	    NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
 
-    String result =  "Lat:"+currentBestLocation.getLatitude()+",Long:"+currentBestLocation.getLongitude();
-    result = result + "Device: "+tel.getDeviceId()+" - Signal: "+signal;
-    
-    if (networkInfo != null && networkInfo.isConnected()) {
+	    String location = "Lat:"+currentBestLocation.getLatitude()+",Long:"+currentBestLocation.getLongitude(); 
+	    String device = "Device: "+tel.getDeviceId()+" - Signal: "+signal+ " - Carrier: "+tel.getNetworkOperatorName();
+	    String networkType;
+	    String pingTime="";
+	    
+	    if (networkInfo != null && networkInfo.isConnected()) {
+	    	
+	    	networkType = networkInfo.getTypeName()+" - "+networkInfo.getSubtypeName();
+	    	try {
+	    		long millis1 = System.currentTimeMillis();
+				downloadUrl("http://www.google.com");
+				long millis2 = System.currentTimeMillis();	
+				pingTime = (millis2-millis1)+"ms";
+			} catch (IOException e) {
+				pingTime = "Error";
+			}
+	    } else {
+	    	networkType = "Not Network";
+	    }
+
+		return location+" - "+device+" - "+networkType+" - "+pingTime;
     	
-    	result=result+" - "+networkInfo.getTypeName()+" - "+networkInfo.getSubtypeName();
-    	try {
-    		long millis1 = System.currentTimeMillis();
-			downloadUrl(stringUrl);
-			long millis2 = System.currentTimeMillis();	
-			return result+" - "+(millis2-millis1)+"ms";
-		} catch (IOException e) {
-			return "Error";
-		}
-    } else {
-        return "Not Network";
     }
-}
 
-
-public String readIt(InputStream stream, int len) throws IOException, UnsupportedEncodingException {
-    Reader reader = null;
-    reader = new InputStreamReader(stream, "UTF-8");        
-    char[] buffer = new char[len];
-    reader.read(buffer);
-    return new String(buffer);
-}
+    /***************************
+    //Funciones para bajar páginas
+    ***************************/
     
-private String downloadUrl(String myurl) throws IOException {
-    InputStream is = null;
-    // Only display the first 1000 characters of the retrieved
-    // web page content.
-    int len = 250;
-        
-    try {
-        URL url = new URL(myurl);
-        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-        conn.setReadTimeout(10000 /* milliseconds */);
-        conn.setConnectTimeout(15000 /* milliseconds */);
-        conn.setRequestMethod("GET");
-        conn.setDoInput(true);
-        // Starts the query
-        conn.connect();
-        //int response = conn.getResponseCode();
-        //Log.d(DEBUG_TAG, "The response is: " + response);
-        is = conn.getInputStream();
-
-        // Convert the InputStream into a string
-        String contentAsString = readIt(is, len);
-        return contentAsString;
-        
-    // Makes sure that the InputStream is closed after the app is
-    // finished using it.
-    } finally {
-        if (is != null) {
-            is.close();
-        } 
-    }
-}	
+	public String readIt(InputStream stream, int len) throws IOException, UnsupportedEncodingException {
+	    Reader reader = null;
+	    reader = new InputStreamReader(stream, "UTF-8");        
+	    char[] buffer = new char[len];
+	    reader.read(buffer);
+	    return new String(buffer);
+	}
+	    
+	private String downloadUrl(String myurl) throws IOException {
+	    InputStream is = null;
+	    // Only display the first 1000 characters of the retrieved
+	    // web page content.
+	    int len = 250;
+	        
+	    try {
+	        URL url = new URL(myurl);
+	        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+	        conn.setReadTimeout(10000 /* milliseconds */);
+	        conn.setConnectTimeout(15000 /* milliseconds */);
+	        conn.setRequestMethod("GET");
+	        conn.setDoInput(true);
+	        // Starts the query
+	        conn.connect();
+	        //int response = conn.getResponseCode();
+	        //Log.d(DEBUG_TAG, "The response is: " + response);
+	        is = conn.getInputStream();
+	
+	        // Convert the InputStream into a string
+	        String contentAsString = readIt(is, len);
+	        return contentAsString;
+	        
+	    // Makes sure that the InputStream is closed after the app is
+	    // finished using it.
+	    } finally {
+	        if (is != null) {
+	            is.close();
+	        } 
+	    }
+	}	
 
 }
