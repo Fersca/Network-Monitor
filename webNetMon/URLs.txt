@@ -1,0 +1,7 @@
+URL para enviar datos:
+http://ec2-174-129-96-72.compute-1.amazonaws.com/webNetMon-0.1/event/evento/1?emai=12345&lat=-34.5&lon=-58.5&signal=10&carrier=Personal&type=mobile&protocol=EDGS&sig=12&ms=500
+
+URL para ver el mapa:
+http://ec2-174-129-96-72.compute-1.amazonaws.com/webNetMon-0.1/main/index/1
+
+http://localhost:8080/webNetMon/event/evento/1?emai=12345&lat=-34&lon=-58&signal=10&carrier=Personal&type=mobile&protocol=EDGS&sig=1022&ms=500
