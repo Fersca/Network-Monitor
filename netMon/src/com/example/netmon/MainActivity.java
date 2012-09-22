@@ -179,47 +179,61 @@ public class MainActivity extends Activity {
     private class Hilo extends Thread {
     	public boolean fin = false;
     	public void run(){
-    		String result = networkMonitor();
+    		String result[] = networkMonitor();
+    		postEvent(result[1]);
     		contador++;   
     		if (contador>6){
-    			currentStatus.setText(result);
+    			currentStatus.setText((String)result[0]);
     			contador=0;
     		} else {
     			currentStatus.setText(currentStatus.getText()+"\n"+result);
     		}
 		   	progress.setText("Fin :"+contador);
 		   	if (!fin){
-		   		mHandler.postDelayed(this, 1000);
+		   		mHandler.postDelayed(this, 60000*15);
 		   	}
     	}
     }
    
-    public String networkMonitor(){
+    public String[] networkMonitor(){
     
 	    ConnectivityManager connMgr = (ConnectivityManager)getSystemService(Context.CONNECTIVITY_SERVICE);
 	    NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
 
-	    String location = "Lat:"+currentBestLocation.getLatitude()+",Long:"+currentBestLocation.getLongitude(); 
-	    String device = "Device: "+tel.getDeviceId()+" - Signal: "+signal+ " - Carrier: "+tel.getNetworkOperatorName();
+	    String lat=""+currentBestLocation.getLatitude();
+	    String lon=""+currentBestLocation.getLongitude();
+	    String emai=tel.getDeviceId();
+	    String carrier=tel.getNetworkOperatorName();
+	    	
 	    String networkType;
+	    String networkSubType;
+	    
 	    String pingTime="";
 	    
 	    if (networkInfo != null && networkInfo.isConnected()) {
 	    	
-	    	networkType = networkInfo.getTypeName()+" - "+networkInfo.getSubtypeName();
+	    	networkType = networkInfo.getTypeName();
+	    	networkSubType = networkInfo.getSubtypeName();
+	    	
 	    	try {
 	    		long millis1 = System.currentTimeMillis();
 				downloadUrl("http://www.google.com");
 				long millis2 = System.currentTimeMillis();	
-				pingTime = (millis2-millis1)+"ms";
+				pingTime = ""+(millis2-millis1);
 			} catch (IOException e) {
 				pingTime = "Error";
 			}
 	    } else {
 	    	networkType = "Not Network";
+	    	networkSubType = "Not Sub Type";
 	    }
 
-		return location+" - "+device+" - "+networkType+" - "+pingTime;
+	    String[] result = new String[2];
+	    
+	    result[0] = "Lat: "+lat+", Long: "+lon+", Device:"+emai+", Carrier: "+carrier+", Network: "+networkType+", Type: "+networkSubType+", Signal: "+signal+", ping: "+pingTime;
+	    result[1] = "emai="+emai+"&lat="+lat+"&lon="+lon+"&signal="+signal+"&carrier="+carrier+"&type="+networkType+"&protocol="+networkSubType+"&sig="+signal+"&ms="+pingTime;
+	    
+		return result;
     	
     }
 
@@ -266,5 +280,13 @@ public class MainActivity extends Activity {
 	        } 
 	    }
 	}	
+	
+	private void postEvent(String datos){
+		try {
+			String result = downloadUrl("http://ec2-174-129-96-72.compute-1.amazonaws.com/webNetMon-0.1/event/evento/1?"+datos);
+		} catch (Exception e){
+			
+		}
+	}
 
 }
