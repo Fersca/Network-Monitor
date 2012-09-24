@@ -7,6 +7,10 @@ import java.io.Reader;
 import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.Queue;
+import java.util.Random;
 
 import android.app.Activity;
 import android.content.Context;
@@ -32,7 +36,7 @@ public class MainActivity extends Activity {
 	TelephonyManager tel;
 	private Handler mHandler;
     private PhoneStateListener phoneStateListener;
-	int signal=0;
+	Integer signal=0;
 	Location currentBestLocation;
 	LocationManager locationManager;
 	LocationListener locationListener;
@@ -179,23 +183,27 @@ public class MainActivity extends Activity {
     private class Hilo extends Thread {
     	public boolean fin = false;
     	public void run(){
-    		String result[] = networkMonitor();
-    		postEvent(result[1]);
+    		Resultados res = networkMonitor();
+    		postEvent(res.red);
     		contador++;   
-    		if (contador>6){
-    			currentStatus.setText((String)result[0]);
-    			contador=0;
+    		if ((contador%3)==0){
+    			currentStatus.setText(res.imprimir);
     		} else {
-    			currentStatus.setText(currentStatus.getText()+"\n"+result);
+    			currentStatus.setText(currentStatus.getText()+"\n"+res.imprimir);
     		}
-		   	progress.setText("Fin :"+contador);
+		   	progress.setText("Fin :"+contador+", Pendientes: "+pendientes.size());
 		   	if (!fin){
-		   		mHandler.postDelayed(this, 60000*15);
+		   		mHandler.postDelayed(this, 60000);
 		   	}
     	}
     }
    
-    public String[] networkMonitor(){
+    private class Resultados {
+    	public String imprimir;
+    	public String red;
+    }
+    
+    public Resultados networkMonitor(){
     
 	    ConnectivityManager connMgr = (ConnectivityManager)getSystemService(Context.CONNECTIVITY_SERVICE);
 	    NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
@@ -205,10 +213,10 @@ public class MainActivity extends Activity {
 	    String emai=tel.getDeviceId();
 	    String carrier=tel.getNetworkOperatorName();
 	    	
-	    String networkType;
-	    String networkSubType;
+	    String networkType="";
+	    String networkSubType="";
 	    
-	    String pingTime="";
+	    String pingTime="0";
 	    
 	    if (networkInfo != null && networkInfo.isConnected()) {
 	    	
@@ -221,22 +229,24 @@ public class MainActivity extends Activity {
 				long millis2 = System.currentTimeMillis();	
 				pingTime = ""+(millis2-millis1);
 			} catch (IOException e) {
-				pingTime = "Error";
+				pingTime = "0";
 			}
 	    } else {
-	    	networkType = "Not Network";
-	    	networkSubType = "Not Sub Type";
+	    	networkType = "NotNetwork";
+	    	networkSubType = "NotSubType";
 	    }
-
-	    String[] result = new String[2];
 	    
-	    result[0] = "Lat: "+lat+", Long: "+lon+", Device:"+emai+", Carrier: "+carrier+", Network: "+networkType+", Type: "+networkSubType+", Signal: "+signal+", ping: "+pingTime;
-	    result[1] = "emai="+emai+"&lat="+lat+"&lon="+lon+"&signal="+signal+"&carrier="+carrier+"&type="+networkType+"&protocol="+networkSubType+"&sig="+signal+"&ms="+pingTime;
+	    Resultados res = new Resultados();
 	    
-		return result;
+	    res.imprimir = "Lat: "+lat+", Long: "+lon+", Device:"+emai+", Carrier: "+carrier+", Network: "+networkType+", Type: "+networkSubType+", Signal: "+signal+", ping: "+pingTime;
+	    res.red = "emai="+emai+"&lat="+lat+"&lon="+lon+"&carrier="+carrier+"&type="+networkType+"&protocol="+networkSubType+"&sig="+(signal!=null?signal:0)+"&ms="+(pingTime!=null?pingTime:0)+"&rand="+r.nextInt(1000000);
+	    
+		return res;
     	
     }
 
+    Random r = new Random();
+    
     /***************************
     //Funciones para bajar páginas
     ***************************/
@@ -258,8 +268,8 @@ public class MainActivity extends Activity {
 	    try {
 	        URL url = new URL(myurl);
 	        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-	        conn.setReadTimeout(10000 /* milliseconds */);
-	        conn.setConnectTimeout(15000 /* milliseconds */);
+	        conn.setReadTimeout(25000 /* milliseconds */);
+	        conn.setConnectTimeout(25000 /* milliseconds */);
 	        conn.setRequestMethod("GET");
 	        conn.setDoInput(true);
 	        // Starts the query
@@ -281,12 +291,29 @@ public class MainActivity extends Activity {
 	    }
 	}	
 	
+	Queue<String> pendientes = new LinkedList<String>();
+	//ArrayList<String> pendientes = new ArrayList<String>(); 
+	
 	private void postEvent(String datos){
 		try {
-			String result = downloadUrl("http://ec2-174-129-96-72.compute-1.amazonaws.com/webNetMon-0.1/event/evento/1?"+datos);
+			pendientes.add(datos);
+			procesaPendientes();			
 		} catch (Exception e){
-			
+			//Envia la proxima vez....
 		}
 	}
 
+	private void procesaPendientes(){
+		
+		while(pendientes.size()>0){
+			String datos = pendientes.poll();
+			try {
+				downloadUrl("http://ec2-174-129-96-72.compute-1.amazonaws.com/webNetMon-0.1/event/evento/1?"+datos);
+			} catch (Exception e){
+				pendientes.add(datos);
+				return;
+			}
+		}
+		
+	}
 }
